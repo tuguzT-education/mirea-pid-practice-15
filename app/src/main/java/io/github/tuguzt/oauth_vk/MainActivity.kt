@@ -19,9 +19,10 @@ class MainActivity : AppCompatActivity() {
     companion object VkServer {
         private const val API_SERVER_URL = "https://api.vk.com/"
 
-        fun api(): Retrofit =
-            Retrofit.Builder().baseUrl(API_SERVER_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build()
+        fun api(): Retrofit = Retrofit.Builder()
+            .baseUrl(API_SERVER_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -29,41 +30,43 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val service = api().create(VkService::class.java)
 
         binding.read.setOnClickListener {
-            val fields = mutableListOf<String>().apply {
+            val fields = buildList {
                 if (binding.birthday.isChecked) add("bdate")
                 if (binding.status.isChecked) add("status")
                 if (binding.isFriend.isChecked) add("is_friend")
             }.joinToString(",")
 
-            service.getUsersProfiles(
-                binding.id.text.toString(), fields, VK_AUTH_KEY
-            ).enqueue(callback<VkUsersResponse> { list ->
+            val id = binding.id.text.toString()
+            val callback = callback<VkUsersResponse> { list ->
                 try {
                     binding.result.text =
                         list.response!!.joinToString("\n________\n") { it.toString() }
                 } catch (e: Exception) {
-                    binding.result.text = listOf(
-                        "Произошла ошибка.",
-                        "Проверьте, что у вас включен Интернет и указан ID пользователя."
-                    ).joinToString("\n\n")
+                    val text = """
+                        Произошла ошибка.
+
+                        Проверьте, что у вас включен Интернет и указан ID пользователя.
+                    """.trimIndent()
+                    binding.result.text = text
                 }
-            })
+            }
+            service.getUsersProfiles(id, fields, VK_AUTH_KEY).enqueue(callback)
         }
     }
 
-    private fun <T> callback(onSuccess: (response: T) -> Unit) =
-        object : Callback<T> {
-            override fun onFailure(call: Call<T>, t: Throwable) {  }
+    private fun <T> callback(onSuccess: (response: T) -> Unit): Callback<T> = object : Callback<T> {
+        override fun onFailure(call: Call<T>, t: Throwable) = Unit
 
-            override fun onResponse(call: Call<T>, response: Response<T>) {
-                Log.d("IDF", response.body().toString() )
-                response.body()?.let { onSuccess(it) }
-            }
+        override fun onResponse(call: Call<T>, response: Response<T>) {
+            Log.d("IDF", response.body().toString())
+            response.body()?.let { onSuccess(it) }
         }
+    }
 }
