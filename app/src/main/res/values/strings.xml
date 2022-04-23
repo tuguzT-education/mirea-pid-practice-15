@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">OAUTH VK</string>
+    <string name="read_button_text">Найти</string>
+    <string name="is_friend_text">В друзьях</string>
+    <string name="status_text">Статус</string>
+    <string name="birthday_text">День рождения</string>
+    <string name="id_hint">id</string>
+    <string name="result_text">
+        Для вывода информации о пользователе,
+        введите его ID и нажмите на кнопку.
+    </string>
+</resources>
